@@ -1,7 +1,7 @@
 package factory
 
 import (
-	"resulguldibi/http-client/entity"
+	"github.com/resulguldibi/http-client/entity"
 )
 
 type IHttpClientFactory interface {
