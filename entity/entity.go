@@ -13,6 +13,7 @@ import (
 type IHttpClient interface {
 	Get(url string) IHttpClient
 	PostJson(url string, data interface{}) IHttpClient
+	PutJson(url string, data interface{}) IHttpClient
 	PostUrlEncoded(url string, data url.Values) IHttpClient
 	EndStruct(response interface{}) error
 }
@@ -63,6 +64,42 @@ func (client *HttpClient) PostJson(url string, data interface{}) IHttpClient {
 
 	if err != nil {
 		client.err = errors.New(fmt.Sprintf("error in Post-> %s", err.Error()))
+		return client
+	}
+
+	client.response = res
+	return client
+}
+
+func (client *HttpClient) PutJson(url string, data interface{}) IHttpClient {
+
+	if client.inTrx {
+		panic(errors.New("client is in trx"))
+	}
+
+	client.inTrx = true
+
+	dataBytes, err := json.Marshal(data)
+
+	if err != nil {
+		client.err = errors.New(fmt.Sprintf("error in PutJson marshal-> %s", err.Error()))
+		return client
+	}
+
+	reader := strings.NewReader(string(dataBytes))
+
+	request, err := http.NewRequest(http.MethodPut, url, reader)
+
+	if err != nil {
+		client.err = errors.New(fmt.Sprintf("error in PutJson http.NewRequest-> %s", err.Error()))
+		return client
+	}
+	request.Header.Set("Content-Type", "application/json")
+
+	res, err := client.client.Do(request)
+
+	if err != nil {
+		client.err = errors.New(fmt.Sprintf("error in Put-> %s", err.Error()))
 		return client
 	}
 
